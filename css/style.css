@@ -180,3 +180,8 @@ button:hover {
         padding: 20px;
     }
 }
+header img {
+  height: 60px;
+  width: auto;
+}
+
