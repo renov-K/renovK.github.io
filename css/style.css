@@ -250,3 +250,65 @@ nav a.active {
   color: #c4161c; /* Renov/K rood */
   font-weight: bold;
 }
+/* ======================
+   MOBIEL (GSM)
+====================== */
+@media (max-width: 768px) {
+
+    /* HEADER */
+    header {
+        flex-direction: column;
+        height: auto;
+        padding: 15px 20px;
+        gap: 15px;
+    }
+
+    nav {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    nav a {
+        font-size: 15px;
+    }
+
+    /* SECTIONS */
+    section {
+        margin: 40px auto;
+        padding: 0 15px;
+    }
+
+    h1 {
+        font-size: 24px;
+        text-align: center;
+    }
+
+    /* HERO / GROTE BLOKKEN */
+    .hero,
+    .hero-content {
+        padding: 30px 20px;
+        text-align: center;
+    }
+
+    .hero h1 {
+        font-size: 26px;
+    }
+
+    .hero p {
+        font-size: 15px;
+    }
+
+    /* ALGEMENE TEKST */
+    p {
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    /* FOOTER */
+    footer {
+        font-size: 14px;
+        padding: 20px;
+    }
+}
+
