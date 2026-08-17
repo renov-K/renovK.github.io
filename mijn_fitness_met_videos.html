@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Mijn Fitness">
+<title>Mijn Fitness</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f4f5;color:#171717;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif}
+header{background:#111;color:#fff;padding:18px 16px 16px;position:sticky;top:0;z-index:20}
+header h1{margin:0;font-size:27px}header small{color:#bbb}
+main{max-width:760px;margin:auto;padding:14px 14px 100px}
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:17px;padding:15px;margin-bottom:14px}
+h2{font-size:20px;margin:0 0 12px}h3{font-size:16px;margin:0 0 8px}
+small,.muted{color:#737373}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button,input,select{font:inherit}
+button{border:0;border-radius:11px;padding:11px 13px;background:#111;color:#fff;font-weight:700;cursor:pointer}
+button.secondary{background:#eee;color:#111}
+button.big{width:100%;font-size:18px;padding:15px;margin-top:9px}
+input,select{border:1px solid #ddd;border-radius:9px;padding:9px;background:#fff;width:100%}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.stat{background:#fafafa;border-radius:12px;padding:12px}
+.stat b{font-size:20px;display:block;margin-top:3px}
+.exercise{border-top:1px solid #e5e5e5;padding:13px 0}
+.exercise:first-child{border-top:0}
+.set{display:grid;grid-template-columns:32px 1fr 1fr 40px;gap:6px;align-items:center;margin:7px 0}
+.check{width:32px;height:32px;padding:0;background:#eee;color:#111}
+.check.done{background:#111;color:#fff}
+.tip{background:#f0f0f0;padding:9px;border-radius:9px;font-size:12px;margin:7px 0}
+.progress{height:9px;background:#eee;border-radius:9px;overflow:hidden}
+.bar{height:100%;background:#111;width:0}
+.timer{text-align:center;font-size:48px;font-weight:800;padding:12px}
+.timer button{margin:3px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.calday{min-height:38px;border-radius:8px;background:#f5f5f5;text-align:center;padding:9px 2px;font-size:12px}
+.calday.done{background:#111;color:#fff}.calhead{font-weight:700;background:#fff}
+.hidden{display:none!important}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;display:flex;z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;color:#666;border-radius:0;font-size:11px;padding:9px 2px}
+nav button.active{color:#111;font-weight:800}
+.notice{background:#f0f0f0;padding:11px;border-radius:11px;font-size:12px}
+.exercise a{display:inline-block}.exercise a button{padding:7px 9px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Mijn Fitness 💪</h1>
+  <small id="date"></small>
+</header>
+
+<main>
+<section id="home">
+  <div class="card">
+    <h2>Welkom terug</h2>
+    <div class="grid">
+      <div class="stat"><small>Gewicht</small><b id="homeWeight">87,9 kg</b></div>
+      <div class="stat"><small>Vet</small><b id="homeFat">±17%</b></div>
+      <div class="stat"><small>Eiwit</small><b>160–180 g</b></div>
+      <div class="stat"><small>Calorieën</small><b>2.500–2.700</b></div>
+    </div>
+    <button class="big" id="startBtn">🏋️ Start training</button>
+  </div>
+
+  <div class="card">
+    <h2>Vandaag</h2>
+    <select id="daySelect"></select>
+    <div id="dailyChecks"></div>
+  </div>
+
+  <div class="card">
+    <h2>Streak 🔥</h2>
+    <h3 id="streak">0 dagen</h3>
+    <small>Voltooide trainingen worden hier bijgehouden.</small>
+  </div>
+</section>
+
+<section id="training" class="hidden">
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 id="trainingTitle"></h2>
+      <button class="secondary" id="stopTraining">Stop</button>
+    </div>
+    <div id="exerciseList"></div>
+  </div>
+  <div class="card">
+    <h3>Training voortgang</h3>
+    <div class="progress"><div id="trainingBar" class="bar"></div></div>
+    <small id="trainingProgress"></small>
+  </div>
+  <div class="card">
+    <h3>Rusttimer</h3>
+    <div class="timer" id="timer">01:30</div>
+    <div class="row" style="justify-content:center">
+      <button data-timer="60">60s</button>
+      <button data-timer="90">90s</button>
+      <button data-timer="120">120s</button>
+      <button class="secondary" id="stopTimer">Stop</button>
+    </div>
+  </div>
+</section>
+
+<section id="calendar" class="hidden">
+  <div class="card">
+    <h2>Trainingskalender</h2>
+    <div class="calendar" id="calendarGrid"></div>
+  </div>
+</section>
+
+<section id="progress" class="hidden">
+  <div class="card">
+    <h2>Progressie</h2>
+    <div class="row">
+      <div style="flex:1"><small>Gewicht kg</small><input id="weightInput" type="number" step="0.1" placeholder="87.9"></div>
+      <div style="flex:1"><small>Vet %</small><input id="fatInput" type="number" step="0.1" placeholder="17"></div>
+      <button id="saveMeasurement">Opslaan</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Historiek</h3>
+    <div id="history"></div>
+  </div>
+</section>
+
+<section id="supp" class="hidden">
+  <div class="card">
+    <h2>Supplementen & voeding</h2>
+    <div id="supplementChecks"></div>
+    <p>🥩 Eiwitdoel: <b>160–180 g</b></p>
+    <p>🔥 Calorieën: <b>2.500–2.700 kcal</b></p>
+    <div class="notice">Whey is vooral een handige eiwitbron. Creatine: 5 g per dag. Gebruik vitaminen volgens de aanbevolen dosering op het etiket.</div>
+  </div>
+</section>
+</main>
+
+<nav>
+  <button data-page="home">🏠<br>Vandaag</button>
+  <button data-page="training">🏋️<br>Training</button>
+  <button data-page="calendar">📅<br>Kalender</button>
+  <button data-page="progress">📈<br>Progressie</button>
+  <button data-page="supp">💊<br>Supps</button>
+</nav>
+
+<script>
+const workouts = {
+  "Dag 1 – Borst + triceps":[
+    ["Bench press",3,6,8],["Incline dumbbell press",3,8,10],["Cable fly",3,10,15],
+    ["Triceps pushdown",3,10,15],["Overhead triceps extension",2,10,15],["Buik",3,10,15]
+  ],
+  "Dag 2 – Rug + biceps":[
+    ["Lat pulldown",3,8,12],["Seated cable row",3,8,12],["Chest-supported row",3,8,12],
+    ["Face pulls",2,12,15],["Dumbbell curl",3,8,12],["Hammer curl",2,10,15]
+  ],
+  "Dag 3 – Benen + buik":[
+    ["Squat / leg press",3,6,10],["Romanian deadlift",3,8,10],["Leg extension",3,10,15],
+    ["Leg curl",3,10,15],["Calf raises",3,10,15],["Cable crunch",3,10,15]
+  ],
+  "Dag 4 – Schouders + upper":[
+    ["Shoulder press",3,6,10],["Lateral raises",4,10,15],["Rear delt fly",3,12,15],
+    ["Incline bench press",3,8,10],["Lat pulldown",3,8,12],["Biceps + triceps",2,10,15]
+  ]
+};
+
+
+const videoLinks = {
+"Bench press":"https://www.youtube.com/results?search_query=bench+press+proper+form",
+"Incline dumbbell press":"https://www.youtube.com/results?search_query=incline+dumbbell+press+proper+form",
+"Cable fly":"https://www.youtube.com/results?search_query=cable+fly+proper+form",
+"Triceps pushdown":"https://www.youtube.com/results?search_query=triceps+pushdown+proper+form",
+"Overhead triceps extension":"https://www.youtube.com/results?search_query=overhead+triceps+extension+proper+form",
+"Buik":"https://www.youtube.com/results?search_query=cable+crunch+proper+form",
+"Lat pulldown":"https://www.youtube.com/results?search_query=lat+pulldown+proper+form",
+"Seated cable row":"https://www.youtube.com/results?search_query=seated+cable+row+proper+form",
+"Chest-supported row":"https://www.youtube.com/results?search_query=chest+supported+row+proper+form",
+"Face pulls":"https://www.youtube.com/results?search_query=face+pull+proper+form",
+"Dumbbell curl":"https://www.youtube.com/results?search_query=dumbbell+bicep+curl+proper+form",
+"Hammer curl":"https://www.youtube.com/results?search_query=hammer+curl+proper+form",
+"Squat / leg press":"https://www.youtube.com/results?search_query=squat+proper+form",
+"Romanian deadlift":"https://www.youtube.com/results?search_query=romanian+deadlift+proper+form",
+"Leg extension":"https://www.youtube.com/results?search_query=leg+extension+proper+form",
+"Leg curl":"https://www.youtube.com/results?search_query=leg+curl+proper+form",
+"Calf raises":"https://www.youtube.com/results?search_query=calf+raise+proper+form",
+"Cable crunch":"https://www.youtube.com/results?search_query=cable+crunch+proper+form",
+"Shoulder press":"https://www.youtube.com/results?search_query=shoulder+press+proper+form",
+"Lateral raises":"https://www.youtube.com/results?search_query=lateral+raise+proper+form",
+"Rear delt fly":"https://www.youtube.com/results?search_query=rear+delt+fly+proper+form",
+"Incline bench press":"https://www.youtube.com/results?search_query=incline+bench+press+proper+form",
+"Biceps + triceps":"https://www.youtube.com/results?search_query=biceps+triceps+superset+proper+form"
+};
+
+const today = new Date().toISOString().slice(0,10);
+let db = JSON.parse(localStorage.getItem("mijnFitnessApp") || '{"sets":{},"last":{},"history":[],"measurements":[],"checks":{}}');
+
+const $ = id => document.getElementById(id);
+$("date").textContent = new Date().toLocaleDateString("nl-BE",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+
+Object.keys(workouts).forEach(day => {
+  const o=document.createElement("option"); o.value=day; o.textContent=day; $("daySelect").appendChild(o);
+});
+$("daySelect").value=localStorage.getItem("selectedDay") || Object.keys(workouts)[0];
+
+function persist(){localStorage.setItem("mijnFitnessApp",JSON.stringify(db));}
+function setKey(ex,s){return $("daySelect").value+"|"+ex+"|"+s;}
+
+function show(page){
+  document.querySelectorAll("main section").forEach(s=>s.classList.add("hidden"));
+  $(page).classList.remove("hidden");
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+  if(page==="training") renderTraining();
+  if(page==="calendar") renderCalendar();
+  if(page==="progress") renderProgress();
+  if(page==="supp") renderSupplements();
+}
+
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>show(b.dataset.page)));
+$("startBtn").addEventListener("click",()=>show("training"));
+$("stopTraining").addEventListener("click",()=>show("home"));
+$("daySelect").addEventListener("change",()=>{localStorage.setItem("selectedDay",$("daySelect").value);renderTraining();});
+
+function renderTraining(){
+  const day=$("daySelect").value;
+  $("trainingTitle").textContent=day;
+  const box=$("exerciseList"); box.innerHTML="";
+  let total=0,done=0;
+
+  workouts[day].forEach((e,ei)=>{
+    const name=e[0], previous=db.last[day+"|"+name] || "";
+    const d=document.createElement("div"); d.className="exercise";
+    d.innerHTML=`<div class="row" style="justify-content:space-between"><h3>${name} <small>${e[1]} × ${e[2]}–${e[3]}</small></h3><a href="${videoLinks[name]||("#")}" target="_blank" rel="noopener" style="text-decoration:none"><button class="secondary" type="button">🎥 Video</button></a></div>`;
+    if(previous) d.innerHTML += `<div class="tip">Vorige training: <b>${previous} kg</b></div>`;
+
+    let allTop=true;
+    for(let s=0;s<e[1];s++){
+      total++;
+      const k=setKey(ei,s), v=db.sets[k]||{};
+      if(v.done) done++;
+      if(!(+v.reps>=e[3])) allTop=false;
+
+      const row=document.createElement("div"); row.className="set";
+      row.innerHTML=`<button class="check ${v.done?'done':''}" aria-label="Set klaar">${v.done?'✓':''}</button>
+        <input type="number" step="0.5" placeholder="${previous||'kg'}" value="${v.kg||''}" aria-label="Gewicht">
+        <input type="number" placeholder="reps" value="${v.reps||''}" aria-label="Herhalingen">
+        <span>#${s+1}</span>`;
+      const btn=row.querySelector("button"), kg=row.querySelectorAll("input")[0], reps=row.querySelectorAll("input")[1];
+      btn.addEventListener("click",()=>{db.sets[k]=db.sets[k]||{};db.sets[k].done=!db.sets[k].done;persist();renderTraining();});
+      kg.addEventListener("change",()=>saveSet(k,"kg",kg.value,day,ei));
+      reps.addEventListener("change",()=>saveSet(k,"reps",reps.value,day,ei));
+      d.appendChild(row);
+    }
+    if(allTop) d.innerHTML += `<div class="tip">🔥 Je haalde de bovenkant van de rep-range. Overweeg volgende keer het gewicht licht te verhogen.</div>`;
+    box.appendChild(d);
+  });
+
+  const percent=total?done/total*100:0;
+  $("trainingBar").style.width=percent+"%";
+  $("trainingProgress").textContent=`${done} van ${total} sets voltooid`;
+  if(done===total && total>0) completeWorkout(day);
+}
+
+function saveSet(k,field,value,day,ei){
+  db.sets[k]=db.sets[k]||{}; db.sets[k][field]=value;
+  if(field==="kg" && value) db.last[day+"|"+workouts[day][ei][0]]=value;
+  persist();
+}
+
+function completeWorkout(day){
+  if(!db.history.includes(today)){db.history.push(today);persist();renderStreak();}
+}
+
+function renderStreak(){
+  let n=0, d=new Date();
+  while(db.history.includes(d.toISOString().slice(0,10))){n++;d.setDate(d.getDate()-1);}
+  $("streak").textContent=n+" dag"+(n===1?"":"en");
+}
+
+const checkItems=[
+  ["creatine","⚡ Creatine 5 g"],
+  ["whey","🥤 Whey indien nodig"],
+  ["multi","💊 Multivitamine indien gewenst"],
+  ["protein","🥩 Eiwitdoel gehaald"],
+  ["calories","🔥 Calorieën bijgehouden"]
+];
+
+function toggleCheck(key){const k=today+"|"+key;db.checks[k]=!db.checks[k];persist();renderDailyChecks();renderSupplements();}
+function renderDailyChecks(){
+  const b=$("dailyChecks"); b.innerHTML="";
+  checkItems.forEach(([key,label])=>{
+    const btn=document.createElement("button");btn.className="secondary";btn.style.width="100%";btn.style.margin="6px 0";
+    btn.textContent=(db.checks[today+"|"+key]?"✓ ":"☐ ")+label;
+    btn.addEventListener("click",()=>toggleCheck(key)); b.appendChild(btn);
+  });
+}
+function renderSupplements(){
+  const b=$("supplementChecks");b.innerHTML="";
+  checkItems.slice(0,3).forEach(([key,label])=>{
+    const btn=document.createElement("button");btn.className="secondary";btn.style.width="100%";btn.style.margin="6px 0";
+    btn.textContent=(db.checks[today+"|"+key]?"✓ ":"☐ ")+label;
+    btn.addEventListener("click",()=>toggleCheck(key));b.appendChild(btn);
+  });
+}
+
+function renderCalendar(){
+  const b=$("calendarGrid"); b.innerHTML="";
+  ["Ma","Di","Wo","Do","Vr","Za","Zo"].forEach(x=>{const el=document.createElement("div");el.className="calday calhead";el.textContent=x;b.appendChild(el);});
+  const now=new Date(), first=new Date(now.getFullYear(),now.getMonth(),1);
+  const offset=(first.getDay()+6)%7, days=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  for(let i=0;i<offset;i++)b.appendChild(document.createElement("div"));
+  for(let d=1;d<=days;d++){
+    const ds=new Date(now.getFullYear(),now.getMonth(),d).toISOString().slice(0,10);
+    const el=document.createElement("div");el.className="calday"+(db.history.includes(ds)?" done":"");el.textContent=d;b.appendChild(el);
+  }
+}
+
+$("saveMeasurement").addEventListener("click",()=>{
+  const w=$("weightInput").value, f=$("fatInput").value;if(!w&&!f)return;
+  db.measurements.unshift({date:today,w,f});db.measurements=db.measurements.slice(0,50);persist();
+  $("weightInput").value="";$("fatInput").value="";renderProgress();
+});
+function renderProgress(){
+  $("history").innerHTML=db.measurements.length
+    ?db.measurements.map(x=>`<p><b>${new Date(x.date+"T12:00").toLocaleDateString("nl-BE")}</b> — ${x.w?x.w+" kg":""} ${x.f?"• "+x.f+"% vet":""}</p>`).join("")
+    :"Nog geen metingen opgeslagen.";
+  const last=db.measurements[0];
+  if(last?.w) $("homeWeight").textContent=last.w+" kg";
+  if(last?.f) $("homeFat").textContent=last.f+"%";
+}
+
+let timerId=null,remaining=90;
+function updateTimer(){$("timer").textContent=String(Math.floor(remaining/60)).padStart(2,"0")+":"+String(remaining%60).padStart(2,"0");}
+document.querySelectorAll("[data-timer]").forEach(b=>b.addEventListener("click",()=>{
+  clearInterval(timerId);remaining=+b.dataset.timer;updateTimer();
+  timerId=setInterval(()=>{remaining--;updateTimer();if(remaining<=0){clearInterval(timerId);if(navigator.vibrate)navigator.vibrate([300,150,300]);}},1000);
+}));
+$("stopTimer").addEventListener("click",()=>{clearInterval(timerId);remaining=0;updateTimer();});
+
+renderDailyChecks();renderSupplements();renderStreak();renderProgress();renderTraining();show("home");
+</script>
+</body></html>
